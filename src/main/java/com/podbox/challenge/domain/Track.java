@@ -1,16 +1,21 @@
 package com.podbox.challenge.domain;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "track")
 public class Track {
 
-    public final Integer rank;
 
-    public final String title;
+    public Integer rank;
 
-    public final String artist;
+    public String title;
 
-    public final String spotifyUri;
+    public String artist;
 
-    public Track(Integer rank, String title, String artist) {
+    public String spotifyUri;
+
+   /* public Track(Integer rank, String title, String artist) {
         this(rank, title, artist, null);
     }
 
@@ -19,5 +24,5 @@ public class Track {
         this.title = title;
         this.artist = artist;
         this.spotifyUri = spotifyUri;
-    }
+    }*/
 }
