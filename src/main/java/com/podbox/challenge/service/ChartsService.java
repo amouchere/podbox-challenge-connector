@@ -28,11 +28,14 @@ import java.util.List;
 public class ChartsService {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ChartsService.class);
+
     @Autowired
     RestTemplate restTemplate;
 
     @Autowired
     private HttpClient httpClient;
+
+    private String spotifySearchUrl = "https://api.spotify.com/v1/search";
 
     public List<Track> getHot10() {
 
@@ -48,6 +51,11 @@ public class ChartsService {
             LOGGER.error("an error occured", e);
         }
 
+        for (Track track : list) {
+            LOGGER.info(track.artist);
+
+            // Add spotify call
+        }
 
         return list;
     }
@@ -60,11 +68,9 @@ public class ChartsService {
         Unmarshaller unmarshaller = context.createUnmarshaller();
         BillBoardResult unmarshalObject = (BillBoardResult) unmarshaller.unmarshal(istream);
 
-        for (Track track : unmarshalObject.getChannel().item) {
-            LOGGER.info(track.artist);
-        }
 
-        list = unmarshalObject.getChannel().item;
+
+        list = unmarshalObject.getChannel().getItem();
         return list;
     }
 }
