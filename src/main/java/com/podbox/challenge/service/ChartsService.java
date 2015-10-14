@@ -51,39 +51,37 @@ public class ChartsService {
         } catch (IOException | JAXBException e) {
             LOGGER.error("an error occured", e);
         }
+
         List<Track> top10List = list.subList(0, 10);
 
         for (Track track : top10List) {
             LOGGER.info(track.getArtist());
             LOGGER.info(track.getTitle());
 
+            SpotifySearchResult spotifySearchResult = getSpotifySearchResult(track);
 
-            try {
+            final Tracks tracks = spotifySearchResult.getTracks();
+            final List<Item> items = tracks.getItems();
 
-                // Add spotify call
-                URI targetUrl = UriComponentsBuilder.fromUriString(spotifySearchUrl)
-                        .queryParam("q", track.getTitle())
-                        .queryParam("type", "track")
-                        .build()
-                        .toUri();
-                LOGGER.info("URI : " + targetUrl.toString());
-
-                SpotifySearchResult spotifySearchResult = restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
-
-                final Tracks tracks = spotifySearchResult.getTracks();
-                final List<Item> items = tracks.getItems();
-
-                if (items.size() > 0) {
-                    track.setSpotifyUri(items.get(0).getUri());
-                }
-
-            } catch (Exception e) {
-                LOGGER.error("an error occured", e);
+            if (items.size() > 0) {
+                // get the first one ?
+                track.setSpotifyUri(items.get(0).getUri());
             }
         }
 
-
         return top10List;
+    }
+
+    private SpotifySearchResult getSpotifySearchResult(Track track) {
+        // Add spotify call
+        URI targetUrl = UriComponentsBuilder.fromUriString(spotifySearchUrl)
+                .queryParam("q", track.getTitle())
+                .queryParam("type", "track")
+                .build()
+                .toUri();
+        LOGGER.info("URI : " + targetUrl.toString());
+
+        return restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
     }
 
     private List<Track> getTracks(List<Track> list) throws IOException, JAXBException {
