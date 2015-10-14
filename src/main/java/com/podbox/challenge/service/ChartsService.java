@@ -1,25 +1,28 @@
 package com.podbox.challenge.service;
 
 import com.podbox.challenge.domain.BillBoardResult;
+import com.podbox.challenge.domain.spotify.Item;
+import com.podbox.challenge.domain.spotify.SpotifySearchResult;
 import com.podbox.challenge.domain.Track;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import com.podbox.challenge.domain.spotify.Tracks;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,19 +48,42 @@ public class ChartsService {
 
         try {
             list = getTracks(list);
-        } catch (IOException e) {
-            LOGGER.error("an error occured", e);
-        } catch (JAXBException e) {
+        } catch (IOException | JAXBException e) {
             LOGGER.error("an error occured", e);
         }
+        List<Track> top10List = list.subList(0, 10);
 
-        for (Track track : list) {
-            LOGGER.info(track.artist);
+        for (Track track : top10List) {
+            LOGGER.info(track.getArtist());
+            LOGGER.info(track.getTitle());
 
-            // Add spotify call
+
+            try {
+
+                // Add spotify call
+                URI targetUrl = UriComponentsBuilder.fromUriString(spotifySearchUrl)
+                        .queryParam("q", track.getTitle())
+                        .queryParam("type", "track")
+                        .build()
+                        .toUri();
+                LOGGER.info("URI : " + targetUrl.toString());
+
+                SpotifySearchResult spotifySearchResult = restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
+
+                final Tracks tracks = spotifySearchResult.getTracks();
+                final List<Item> items = tracks.getItems();
+
+                if (items.size() > 0) {
+                    track.setSpotifyUri(items.get(0).getUri());
+                }
+
+            } catch (Exception e) {
+                LOGGER.error("an error occured", e);
+            }
         }
 
-        return list;
+
+        return top10List;
     }
 
     private List<Track> getTracks(List<Track> list) throws IOException, JAXBException {
@@ -68,9 +94,6 @@ public class ChartsService {
         Unmarshaller unmarshaller = context.createUnmarshaller();
         BillBoardResult unmarshalObject = (BillBoardResult) unmarshaller.unmarshal(istream);
 
-
-
-        list = unmarshalObject.getChannel().getItem();
-        return list;
+        return unmarshalObject.getChannel().getItem();
     }
 }
