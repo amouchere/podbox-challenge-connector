@@ -46,28 +46,22 @@ public class ChartsService {
             LOGGER.error("an error occured", e);
         }
 
-        List<Track> top10List = list.subList(0, 50);
+        List<Track> top10List = list.subList(0, 10);
 
         for (Track track : top10List) {
-            LOGGER.info(track.getArtist());
-            LOGGER.info(track.getTitle());
-
+            LOGGER.info("Found track from BillBoard : " + track.getTitle());
             SpotifySearchResult spotifySearchResult = spotifyService.getSpotifySearchResult(track);
-
 
             if (spotifySearchResult != null){
                 final Tracks tracks = spotifySearchResult.getTracks();
                 final List<Item> items = tracks.getItems();
 
                 if (items.size() > 0) {
-                    // get the first one ?
+                    // get only the first one ?
                     track.setSpotifyUri(items.get(0).getUri());
                 }
             }
-
         }
-
-
         return top10List;
     }
 

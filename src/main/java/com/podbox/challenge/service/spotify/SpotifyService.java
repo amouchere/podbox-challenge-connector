@@ -27,10 +27,6 @@ public class SpotifyService {
     private static Logger LOGGER = LoggerFactory.getLogger(SpotifyService.class);
 
     @Autowired
-    RestTemplate restTemplate;
-
-    private String spotifySearchUrl = "https://api.spotify.com/v1/search";
-    @Autowired
     ApplicationContext context;
 
     @Autowired
@@ -38,18 +34,18 @@ public class SpotifyService {
 
     public SpotifySearchResult getSpotifySearchResult(Track track) {
 
+        SpotifySearchResult spotifySearchResult = null;
+
+        // Create task and launch
         SpotifyThread task = (SpotifyThread) context.getBean("spotifyThread");
         task.setTrack(track);
 
-        Future<SpotifySearchResult> future = taskExecutor.submit (task);
+        Future<SpotifySearchResult> future = taskExecutor.submit(task);
 
-        SpotifySearchResult spotifySearchResult = null;
         try {
-           spotifySearchResult = future.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            spotifySearchResult = future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            LOGGER.error("an error occured", e);
         }
         return spotifySearchResult;
     }

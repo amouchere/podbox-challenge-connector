@@ -13,10 +13,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.concurrent.Callable;
 
-/**
- * Created by LaBete on 15/10/2015.
- */
-
 @Component
 @Scope("prototype")
 public class SpotifyThread implements Callable {
@@ -28,13 +24,7 @@ public class SpotifyThread implements Callable {
 
     private String spotifySearchUrl = "https://api.spotify.com/v1/search";
 
-
     private Track track;
-
-    public void setTrack(Track track) {
-        this.track = track;
-    }
-
 
     @Override
     public Object call() throws Exception {
@@ -45,9 +35,10 @@ public class SpotifyThread implements Callable {
                 .build()
                 .toUri();
         LOGGER.info("URI : " + targetUrl.toString());
-
-        SpotifySearchResult result = restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
-        return result;
+        return restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
     }
 
+    public void setTrack(Track track) {
+        this.track = track;
+    }
 }
