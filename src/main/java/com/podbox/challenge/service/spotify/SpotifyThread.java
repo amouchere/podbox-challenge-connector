@@ -26,6 +26,9 @@ public class SpotifyThread implements Callable {
 
     private Track track;
 
+
+    private int idTask;
+
     @Override
     public Object call() throws Exception {
         // Add spotify call
@@ -35,10 +38,26 @@ public class SpotifyThread implements Callable {
                 .build()
                 .toUri();
         LOGGER.info("URI : " + targetUrl.toString());
-        return restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
+
+        int i = (int) (Math.random() * (10 - 5) + 5) * 1000;
+        LOGGER.info("task " + getIdTask() + " sleep for"+ i);
+        Thread.sleep(i);
+        final SpotifySearchResult result = restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
+        LOGGER.info("task done: " + getIdTask());
+        result.setIdTask(getIdTask());
+        return result;
     }
 
     public void setTrack(Track track) {
         this.track = track;
+    }
+
+
+    public int getIdTask() {
+        return idTask;
+    }
+
+    public void setIdTask(int idTask) {
+        this.idTask = idTask;
     }
 }

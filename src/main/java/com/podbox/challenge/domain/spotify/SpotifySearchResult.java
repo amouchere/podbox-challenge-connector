@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpotifySearchResult {
 
+    private int idTask;
+
     @JsonProperty("tracks")
     private Tracks tracks;
 
@@ -20,5 +22,13 @@ public class SpotifySearchResult {
     @JsonProperty("tracks")
     public void setTracks(Tracks tracks) {
         this.tracks = tracks;
+    }
+
+    public int getIdTask() {
+        return idTask;
+    }
+
+    public void setIdTask(int idTask) {
+        this.idTask = idTask;
     }
 }
