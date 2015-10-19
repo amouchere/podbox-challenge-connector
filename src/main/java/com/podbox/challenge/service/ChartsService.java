@@ -21,6 +21,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionService;
@@ -30,6 +31,7 @@ import java.util.concurrent.ExecutorCompletionService;
 @Component
 public class ChartsService {
 
+    public static final int NB_RESULT = 100;
     private static Logger LOGGER = LoggerFactory.getLogger(ChartsService.class);
 
     @Autowired
@@ -46,6 +48,7 @@ public class ChartsService {
 
     public List<Track> getHot10() {
 
+        Date startDate = new Date();
         LOGGER.info("getHot10");
         List<Track> list = new LinkedList<>();
 
@@ -56,7 +59,7 @@ public class ChartsService {
             LOGGER.error("an error occured", e);
         }
 
-        List<Track> top10List = list.subList(0, 10);
+        List<Track> top10List = list.subList(0, NB_RESULT);
 
         int indexTask = 0;
         for (Track track : top10List) {
@@ -71,26 +74,19 @@ public class ChartsService {
         }
 
         int i = 0;
-        while (i < 10) {
+        while (i < NB_RESULT) {
             try {
                 // find the first completed task
                 SpotifySearchResult x = completionService.take().get();
-                if (x != null) {
-                    final Tracks tracks = x.getTracks();
-                    final List<Item> items = tracks.getItems();
 
-                    if (items.size() > 0) {
-                        // get only the first one ?
-                        top10List.get(x.getIdTask()).setSpotifyUri(items.get(0).getUri());
-                    }
-                }
                 i++;
             } catch (InterruptedException | ExecutionException e) {
                 LOGGER.error("an error occured", e);
             }
         }
 
-        LOGGER.info("Finish ! ");
+        Date endDate = new Date();
+        LOGGER.info("Finish in " + (endDate.getTime() - startDate.getTime())/1000 + " seconds.");
         return top10List;
     }
 

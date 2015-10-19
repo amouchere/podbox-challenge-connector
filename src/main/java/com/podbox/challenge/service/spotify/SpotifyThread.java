@@ -1,7 +1,9 @@
 package com.podbox.challenge.service.spotify;
 
 import com.podbox.challenge.domain.Track;
+import com.podbox.challenge.domain.spotify.Item;
 import com.podbox.challenge.domain.spotify.SpotifySearchResult;
+import com.podbox.challenge.domain.spotify.Tracks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 @Component
@@ -37,14 +40,20 @@ public class SpotifyThread implements Callable {
                 .queryParam("type", "track")
                 .build()
                 .toUri();
-        LOGGER.info("URI : " + targetUrl.toString());
-
-        int i = (int) (Math.random() * (10 - 5) + 5) * 1000;
-        LOGGER.info("task " + getIdTask() + " sleep for"+ i);
-        Thread.sleep(i);
         final SpotifySearchResult result = restTemplate.getForObject(targetUrl, SpotifySearchResult.class);
         LOGGER.info("task done: " + getIdTask());
         result.setIdTask(getIdTask());
+
+        if (result != null) {
+            final Tracks tracks = result.getTracks();
+            final List<Item> items = tracks.getItems();
+
+            if (items.size() > 0) {
+                // get only the first one ?
+                track.setSpotifyUri(items.get(0).getUri());
+            }
+        }
+
         return result;
     }
 
