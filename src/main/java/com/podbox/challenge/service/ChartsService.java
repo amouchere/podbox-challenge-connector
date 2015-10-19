@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -41,7 +42,7 @@ public class ChartsService {
     private String spotifySearchUrl = "https://api.spotify.com/v1/search";
 
     public List<Track> getHot10() {
-
+        Date startDate = new Date();
         LOGGER.info("getHot10");
         List<Track> list = new ArrayList<Track>();
 
@@ -52,7 +53,7 @@ public class ChartsService {
             LOGGER.error("an error occured", e);
         }
 
-        List<Track> top10List = list.subList(0, 10);
+        List<Track> top10List = list.subList(0, 100);
 
         for (Track track : top10List) {
             LOGGER.info(track.getArtist());
@@ -68,7 +69,8 @@ public class ChartsService {
                 track.setSpotifyUri(items.get(0).getUri());
             }
         }
-
+        Date endDate = new Date();
+        LOGGER.info("Finish in " + (endDate.getTime() - startDate.getTime()) / 1000 + " seconds.");
         return top10List;
     }
 
