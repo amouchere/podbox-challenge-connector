@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorCompletionService;
 @Component
 public class ChartsService {
 
-    public static final int NB_RESULT = 100;
+    private static final int NB_RESULT = 10;
     private static Logger LOGGER = LoggerFactory.getLogger(ChartsService.class);
 
     @Autowired
@@ -44,7 +44,7 @@ public class ChartsService {
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
 
-    private CompletionService<SpotifySearchResult> completionService ;
+    private CompletionService<SpotifySearchResult> completionService;
 
     public List<Track> getHot10() {
 
@@ -61,6 +61,31 @@ public class ChartsService {
 
         List<Track> top10List = list.subList(0, NB_RESULT);
 
+        // launch jobs
+        launchAsynchronousSpotifyTasks(top10List);
+
+        // wait for all jobs.
+        waitEndOfJobs();
+
+        Date endDate = new Date();
+        LOGGER.info("Finish in " + (endDate.getTime() - startDate.getTime()) / 1000 + " seconds.");
+        return top10List;
+    }
+
+    private void waitEndOfJobs() {
+        int i = 0;
+        while (i < NB_RESULT) {
+            try {
+                // find the first completed task
+                SpotifySearchResult x = completionService.take().get();
+                i++;
+            } catch (InterruptedException | ExecutionException e) {
+                LOGGER.error("an error occured", e);
+            }
+        }
+    }
+
+    private void launchAsynchronousSpotifyTasks(List<Track> top10List) {
         int indexTask = 0;
         for (Track track : top10List) {
             // Create task and launch
@@ -72,22 +97,6 @@ public class ChartsService {
             LOGGER.info(" Task is submitted");
             indexTask++;
         }
-
-        int i = 0;
-        while (i < NB_RESULT) {
-            try {
-                // find the first completed task
-                SpotifySearchResult x = completionService.take().get();
-
-                i++;
-            } catch (InterruptedException | ExecutionException e) {
-                LOGGER.error("an error occured", e);
-            }
-        }
-
-        Date endDate = new Date();
-        LOGGER.info("Finish in " + (endDate.getTime() - startDate.getTime())/1000 + " seconds.");
-        return top10List;
     }
 
 
@@ -103,7 +112,7 @@ public class ChartsService {
     }
 
     @PostConstruct
-    private void init(){
+    private void init() {
         completionService = new ExecutorCompletionService<SpotifySearchResult>(threadPoolTaskExecutor);
     }
 }
